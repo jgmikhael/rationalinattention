@@ -124,6 +124,41 @@ xticks(.2:.2:1)
 ylabel('Pacemaker Period (a.u.)')
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Blanchard et al. (2013)
+
+% compute scaling factor (i.e., pacemaker rate)
+R = [1; .7];                    % pre, post-reward
+DA = R*[1 1];                   % DA level
+dur_pre = 1;                    % standard unit of pre-reward duration
+dur = [0 1 2 3 4 5 6 10];       % timed durations for post-reward
+t = 0:.01:dur;                  % time domain (arbitrary)
+
+l = length(dur);
+etaPRE = nan(l,2);
+etaPOST = nan(l,2);
+
+for e = 1:l
+   [etaPRE(e,:),mhpre(e),~,~,~] = TimeModel(dur_pre, DA(1,:), k0, t);
+   [etaPOST(e,:),mhpost(e),~,~,~] = TimeModel(dur(e), DA(2,:), k0, t);
+end
+mhStandard = mean(mhpost(1:7));
+
+w = mhpost./mhpre;
+wStand = mhStandard./mhpre(1);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Figure %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure(6)
+figName{6} = 'BH13';
+bar(3:9,w([1 2 3 4 5 6 8]),'FaceColor',[204 205 207]/255)
+hold on
+bar(1,wStand,'FaceColor',[70 70 72]/255)
+xticks([1 3:9])
+xticklabels({'standard task','0','1','2','3','4','5','10'})
+xlabel('buffer duration')
+ylabel('w term')
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Soares et al. (2016)
 
 dur = [.6, 2.4];              	% short and long durations
