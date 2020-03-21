@@ -1,8 +1,10 @@
 % This code simulates the effect of dopamine on interval timing, both in 
 % reproduction (Malapani et al., 1998; Lake & Meck, 2013) and estimation
 % (Soares et al., 2016; Maricq et al., 1981), as well as the effect of
-% controllability on clock speed (Bizo & White, 1995).
+% controllability on clock speed (Bizo & White, 1995) and post-reward
+% delays (Blanchard et al., 2013).
 % Written 12Aug19 by JGM.
+% Updated 17Mar20 by JGM, with post-reward delay simulation.
 
 clear; close all; clc
 
