@@ -1,10 +1,13 @@
 % This code simulates the effect of dopamine on interval timing, both in 
 % reproduction (Malapani et al., 1998; Lake & Meck, 2013) and estimation
-% (Soares et al., 2016; Maricq et al., 1981), as well as the effect of
-% controllability on clock speed (Bizo & White, 1995) and post-reward
-% delays (Blanchard et al., 2013).
+% (Soares et al., 2016; Maricq et al., 1981), the effect of controllability
+% on clock speed (Bizo & White, 1995) and post-reward delays (Blanchard
+% et al., 2013), the effect of average reward on clock speed (Killeen &
+% Fetterman, 1988), and the effect of prefeeding on the central tendency
+% (Ward & Odum, 2007).
 % Written 12Aug19 by JGM.
 % Updated 17Mar20 by JGM, with post-reward delay simulation.
+% Updated 29Jun20 by JGM, with average reward and prefeeding simulations.
 
 clear; close all; clc
 
@@ -92,15 +95,14 @@ legend('7s High','7s Low','7s Baseline','17s High','17s Low','17s Baseline')
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Bizo & White (1995)
 
-Rt = .01:.01:.05;             	% total reinforcer rate
+Rt = .01:.01:.05;               % total reinforcer rate
 Rc = .01;                      	% rewards contingent on timing
-e = .01;                        % smoothing term (epsilon)
-R = log(Rt+e)-log(Rt-Rc+e)+e;   % added value of timing-contingent rewards
+R = Rc./Rt;                     % value of timing-contingent rewards
 DA = R'*[1 1];                  % DA levels
 
 k0 = .1;                        % unit cost of information per time
 dur = 1;                        % timed duration (arbitrary)
-t = 0:.01:dur;                  % time domain (arbitrary)
+t = 0:1:dur;                    % time domain (arbitrary)
 
 % compute scaling factor (i.e., pacemaker rate)
 l = length(DA);
@@ -116,14 +118,19 @@ figName{3} = 'BW95';
 subplot(2,1,1)
 plot(Rt,1./eta,'-ko')
 xlabel('Obtained Reinforcer Rate (a.u.)')
-xticks(.01:.01:.05)
-ylabel('Pacemaker Period (a.u.)')
+xticks(Rt)
 
 subplot(2,1,2)
 plot(Rc./Rt,1./eta,'-ko')
 xlabel('Proportion of Reinforcers Obtained From Timing')
-xticks(.2:.2:1)
-ylabel('Pacemaker Period (a.u.)')
+xticks([.5 .75 1])
+
+for e = 1:2
+    subplot(2,1,e)   
+    yticks(.2:.1:.6)
+    ylim([.2 .6])
+    ylabel('Pacemaker Period (a.u.)')
+end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Blanchard et al. (2013)
@@ -235,3 +242,62 @@ yticks([0 1])
 legend('Baseline, 1s vs 4s','High, 1s vs 4s', 'Baseline, 2s vs 8s', ...
     'High, 2s vs 8s', 'Baseline, 4s vs 16s', 'High, 4s vs 16s',...
     'Location','Southeast')
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Killeen & Fetterman (1988)
+
+R = 0:.5:10;                    % reinforcer rate
+DA = R'*[1 1];                  % DA levels
+
+k0 = .2;                        % unit cost of information per time
+dur = 1;                        % timed duration (arbitrary)
+t = 0:1:dur;                    % time domain (arbitrary)
+
+% compute scaling factor (i.e., pacemaker rate)
+l = length(DA);
+eta = nan(l,2);
+for e = 1:l
+   [eta(e,:),~,~,~,~] = TimeModel(dur, DA(e,:), k0, t);
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Figure %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure(7)
+figName{7} = 'KF88';
+plot(R,eta,'-ko')
+xlabel('Reinforcement Density')
+xticks(0:10)
+ylabel('Clock Speed')
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Ward & Odum (2007)
+
+dur = [2 8];                    % short and long durations
+DA = [.7; .3]*[1 1];         	% DA levels
+t = 0:.01:8;                    % time domain
+k0 = .2;                        % unit cost of information per time
+
+% compute p(Long)
+p = nan(2,length(t));
+for e = 1:2
+    [~,~,~,~,post] = TimeModel(dur, DA(e,:), k0, t);
+    p(e,:) = post(:,2)./sum(post,2);
+
+	figure(801)
+	subplot(1,2,e)
+	plot(t,post)
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% Figure %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure(8)
+figName{8} = 'WO07';
+plot(t,p(1,:),'k')
+hold on
+plot(t,p(2,:),'k--')
+xlim([dur(1)-.05,dur(2)+.05])
+xticks([2 5 8])
+yticks(0:.2:1)
+xlabel('Time Interval')
+ylabel('p(Long Choice)')
+legend('Baseline', 'Disrupt','Location','Northwest')
